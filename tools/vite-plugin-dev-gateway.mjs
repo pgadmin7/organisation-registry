@@ -1,4 +1,4 @@
-// Small extras on top of Vite's own server options (`server.allowedHosts` incl. ".example.com" wildcards,
+// Development only (vite serve / preview, never part of a build). Small extras on top of Vite's own server options (`server.allowedHosts` incl. ".example.com" wildcards,
 // `server.proxy`, ...), which stay the place to configure hosts and proxies.
 //
 //   sniCopy        mint a throwaway certificate (in memory, 1 day, needs openssl) for the host name the client
@@ -139,7 +139,8 @@ export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {
 
   return {
     name: "dev-gateway",
-    config: (config) => ({
+    // dev and preview only: a build (CI, the Docker image) must not need openssl or add anything to the output
+    config: (config, { command }) => command === "build" ? {} : ({
       server: { https: https(config.server?.https || null) },
       preview: { https: https(config.preview?.https || null) },
     }),
