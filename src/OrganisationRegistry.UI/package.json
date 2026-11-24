@@ -14,7 +14,8 @@
     "lint": "npm run tslint \"src/OrganisationRegistry.UI/**/*.ts\"",
     "tslint": "tslint",
     "postinstall": "patch-package",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@angular/common": "2.4.10",

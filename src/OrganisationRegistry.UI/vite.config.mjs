@@ -2,6 +2,7 @@ import { cpSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import ts from "typescript5";
+import { devGateway } from "./vite-plugin-dev-gateway.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 
@@ -79,12 +80,53 @@ const skipLongStackTrace = (mode) => ({
   load: (id) => (id === "\0empty" ? "" : null),
 });
 
+// The dev server is the single origin for Angular (/) and Vue2 (/v2), so both share one login.
+const listen = {
+  host: process.env.HOST || "organisatie.dev-vlaanderen.local",
+  port: Number(process.env.PORT) || 443,
+  strictPort: true,
+  https: {
+    pfx: readFileSync(`${root}../../organisationregistry-ui.pfx`),
+    passphrase: "organisationregistry",
+  },
+};
+
 export default defineConfig(({ mode }) => ({
   root,
   base: "/",
   // TypeScript is compiled by the decorators plugin; esbuild only minifies the output.
   esbuild: { exclude: /\.tsx?$/ },
-  plugins: [skipLongStackTrace(mode), angularResources(), decorators(), copyAssets()],
+  plugins: [
+    skipLongStackTrace(mode),
+    angularResources(),
+    decorators(),
+    copyAssets(),
+    devGateway({
+      // OAuth callback of the Postman-style client: send it to the UI (add `127.0.0.1 oauth.pstmn.io` to hosts)
+      aliases: [
+        {
+          host: "oauth.pstmn.io",
+          path: "/v1/browser-callback",
+          redirect: process.env.OIC_TARGET || "https://or-ui.gitrebase.be/#/oic",
+        },
+      ],
+      hosts: ["or-ui.gitrebase.be", ...(process.env.ALLOWED_HOSTS?.split(",") ?? [])],
+      // dev: Vue2's own dev server (`npm run serve` in OrganisationRegistry.Vue2); preview: its built dist
+      proxy: { "/v2": { target: process.env.VUE_DEV_SERVER || "https://localhost:8443", secure: false, ws: true } },
+      mounts: { "/v2": fileURLToPath(new URL("../OrganisationRegistry.Vue2/dist", import.meta.url)) },
+      // same keys as init.sh
+      runtimeConfig: {
+        organisationRegistryVersion: (env) => `v2-${env.API_VERSION ?? ""}`,
+        organisationRegistryApiEndpoint: "API_ENDPOINT",
+        organisationRegistryUiEndpoint: "UI_ENDPOINT",
+        organisationRegistryInformatieVlaanderenLink: "AIV_URI",
+        otelServerUri: "OTEL_SERVER_URI",
+        otelDistributedTracingOrigins: "OTEL_DISTRIBUTED_TRACING_ORIGINS",
+        environmentName: "ENV_NAME",
+      },
+      httpPort: Number(process.env.HTTP_PORT ?? 9007),
+    }),
+  ],
   resolve: {
     extensions: [".ts", ".js", ".json"],
     alias: [
@@ -105,13 +147,6 @@ export default defineConfig(({ mode }) => ({
     target: "es2015",
     sourcemap: true,
   },
-  server: {
-    host: process.env.HOST || "organisatie.dev-vlaanderen.local",
-    port: Number(process.env.PORT) || 443,
-    strictPort: true,
-    https: {
-      pfx: readFileSync(`${root}../../organisationregistry-ui.pfx`),
-      passphrase: "organisationregistry",
-    },
-  },
+  server: listen,
+  preview: listen,
 }));

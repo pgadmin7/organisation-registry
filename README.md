@@ -37,6 +37,14 @@ npm run start:hmr
 # browse to https://organisatie.dev-vlaanderen.local
 ```
 
+The Angular dev server is also a gateway (`src/OrganisationRegistry.UI/vite-plugin-dev-gateway.mjs`, configured in its `vite.config.mjs`), so the login is shared with Vue2:
+
+- `/v2` is proxied to the Vue2 dev server: start it with `npm run serve` in `src/OrganisationRegistry.Vue2`, then browse to `https://organisatie.dev-vlaanderen.local/v2/`.
+- Alias domains (`aliases`) and extra hosts (`hosts`, `ALLOWED_HOSTS`) that point at 127.0.0.1 in your `hosts` file get a throwaway certificate (kept in memory, gone when the server stops). An alias answers with a redirect; the configured one sends the Postman OAuth callback host to `OIC_TARGET` (default `https://or-ui.gitrebase.be/#/oic`).
+- `/config.js` is built from the environment (`API_ENDPOINT`, `UI_ENDPOINT`, `API_VERSION`, `AIV_URI`, `OTEL_SERVER_URI`, `OTEL_DISTRIBUTED_TRACING_ORIGINS`, `ENV_NAME`), like `init.sh` does in the image.
+- A plain HTTP listener on `127.0.0.1:9007` (`HTTP_PORT`, `HTTP_HOST`) is meant for tunnels that terminate TLS.
+- `npm run preview` serves the built `wwwroot` and the built Vue2 `dist` the same way (run both builds first).
+
 #### To run external dependencies
 
 Organisation Registry integrates with a number of external systems:

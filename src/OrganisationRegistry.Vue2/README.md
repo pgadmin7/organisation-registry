@@ -15,6 +15,7 @@ npm run serve
 ```
 The dev server listens on port 8443 of `organisatie.dev-vlaanderen.local` (see the hosts entries in the root README),
 because the Angular dev server uses 443: https://organisatie.dev-vlaanderen.local:8443/v2/
+The Angular dev server proxies `/v2` to it, so https://organisatie.dev-vlaanderen.local/v2/ works too and shares the Angular login.
 
 ### Compiles and minifies for production
 ```
