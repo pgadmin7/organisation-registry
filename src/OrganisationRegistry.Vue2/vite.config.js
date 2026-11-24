@@ -33,7 +33,8 @@ export default defineConfig({
   },
   server: {
     host: "organisatie.dev-vlaanderen.local",
-    port: 443,
+    // 443 is taken by the Angular dev server; override with `npm run serve -- --port <port>`
+    port: 8443,
     strictPort: true,
   },
 });
