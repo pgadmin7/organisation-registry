@@ -15,8 +15,6 @@ npm run serve
 ```
 The dev server listens on port 8443 of `organisatie.dev-vlaanderen.local` (see the hosts entries in the root README),
 because the Angular dev server uses 443: https://organisatie.dev-vlaanderen.local:8443/v2/
-sudo setcap 'cap_net_bind_service=+ep' "$(readlink -f "$(which node)")"
-```
 
 ### Compiles and minifies for production
 ```
@@ -29,4 +27,4 @@ npm run lint
 ```
 
 ### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+See [Configuration Reference](https://vite.dev/config/).
