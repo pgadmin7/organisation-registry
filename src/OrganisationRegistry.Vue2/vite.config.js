@@ -32,8 +32,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: "organisatie.dev-vlaanderen.local",
-    // 443 is taken by the Angular dev server; override with `npm run serve -- --port <port>`
+    // the Angular dev server proxies /v2 here (VUE_DEV_SERVER there); override with `npm run serve -- --port <port>`
     port: 8443,
     strictPort: true,
   },

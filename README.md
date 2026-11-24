@@ -20,30 +20,23 @@ Please see our [contributing guidelines](CONTRIBUTING.md) before contributing.
 
 #### To run the UI in live reload mode:
 
-Make sure you have the following lines in your `hosts` file
-
-```bash
-127.0.0.1	organisatie.dev-vlaanderen.local
-127.0.0.1	api.organisatie.dev-vlaanderen.local
-```
-
-Run the following commands:
 ```bash
 cd src/OrganisationRegistry.UI
 nvm use
-sudo setcap 'cap_net_bind_service=+ep' `which node` #only if experiencing permissions issues with port
 npm install --legacy-peer-deps
 npm run start:hmr
-# browse to https://organisatie.dev-vlaanderen.local
+# browse to https://localhost:5173 (self-signed certificate)
 ```
 
-The Angular dev server is also a gateway (`src/OrganisationRegistry.UI/vite-plugin-dev-gateway.mjs`, configured in its `vite.config.mjs`), so the login is shared with Vue2:
+The dev server is a small gateway (`src/OrganisationRegistry.UI/vite-plugin-dev-gateway.mjs`, configured in its `vite.config.mjs`), plain `localhost` on Vite's default port:
 
-- `/v2` is proxied to the Vue2 dev server: start it with `npm run serve` in `src/OrganisationRegistry.Vue2`, then browse to `https://organisatie.dev-vlaanderen.local/v2/`.
-- Alias domains (`aliases`) and extra hosts (`hosts`, `ALLOWED_HOSTS`) that point at 127.0.0.1 in your `hosts` file get a throwaway certificate (kept in memory, gone when the server stops). An alias answers with a redirect; the configured one sends the Postman OAuth callback host to `OIC_TARGET` (default `https://or-ui.gitrebase.be/#/oic`).
-- `/config.js` is built from the environment (`API_ENDPOINT`, `UI_ENDPOINT`, `API_VERSION`, `AIV_URI`, `OTEL_SERVER_URI`, `OTEL_DISTRIBUTED_TRACING_ORIGINS`, `ENV_NAME`), like `init.sh` does in the image.
-- A plain HTTP listener on `127.0.0.1:9007` (`HTTP_PORT`, `HTTP_HOST`) is meant for tunnels that terminate TLS.
-- `npm run preview` serves the built `wwwroot` and the built Vue2 `dist` the same way (run both builds first).
+- `/api` is forwarded to the API (`API_ENDPOINT`, default `https://localhost:2443`), so the UI talks to its own origin.
+- `/v2` is forwarded to the Vue2 dev server: run `npm run serve` in `src/OrganisationRegistry.Vue2` and browse to `https://localhost:5173/v2/`. Both apps share one origin, so they share the login.
+- Every other path is served 1:1 by the dev server.
+- `urlForwarders` are host names you point at `127.0.0.1` in your `hosts` file (for example `organisatie.dev-vlaanderen.local`, needed for the registered login redirect). They are handled exactly like localhost, `abc.com/api/v1/me` like `localhost:5173/api/v1/me`, and get a throwaway certificate that lives in memory only. Without a port they arrive on 443: `sudo setcap 'cap_net_bind_service=+ep' $(which node)` (or `HTTPS_PORT=0` to skip it).
+- `/config.js` is built from the environment like `init.sh` does (`API_VERSION`, `AIV_URI`, `OTEL_SERVER_URI`, `OTEL_DISTRIBUTED_TRACING_ORIGINS`, `ENV_NAME`); the UI and API urls follow the host you browse with.
+- Plain HTTP on `127.0.0.1:9007` (`HTTP_PORT`, `0` = off) is meant for tunnels that terminate TLS.
+- `npm run preview` serves the built `wwwroot` and the built Vue2 `dist` the same way (build both first).
 
 #### To run external dependencies
 
