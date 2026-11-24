@@ -49,8 +49,6 @@ $vl-icon-font-location: '~@govflanders/vl-ui-core/dist/font/iconfont/';
 
 @import "~@govflanders/vl-ui-checkbox/src/scss/checkbox";
 @import "~@govflanders/vl-ui-checkbox-tile/src/scss/checkbox-tile";
-@import "~@govflanders/vl-ui-code-preview/src/scss/code-preview";
-@import "~@govflanders/vl-ui-contact-card/src/scss/contact-card";
 @import "~@govflanders/vl-ui-content-footer/src/scss/content-footer";
 @import "~@govflanders/vl-ui-content-header/src/scss/content-header";
 
@@ -78,10 +76,8 @@ $vl-icon-font-location: '~@govflanders/vl-ui-core/dist/font/iconfont/';
 @import "~@govflanders/vl-ui-instagram-feed/src/scss/instagram-feed";
 @import "~@govflanders/vl-ui-introduction/src/scss/introduction";
 
-@import "~@govflanders/vl-ui-lazyload/src/scss/lazyload";
 
 @import "~@govflanders/vl-ui-map/src/scss/map";
-@import "~@govflanders/vl-ui-modal/src/scss/modal";
 @import "~@govflanders/vl-ui-news-teaser/src/scss/news-teaser";
 @import "~@govflanders/vl-ui-pager/src/scss/pager";
 @import "~@govflanders/vl-ui-person/src/scss/person";
@@ -97,7 +93,6 @@ $vl-icon-font-location: '~@govflanders/vl-ui-core/dist/font/iconfont/';
 @import "~@govflanders/vl-ui-radio-tile/src/scss/radio-tile";
 @import "~@govflanders/vl-ui-range/src/scss/range";
 @import "~@govflanders/vl-ui-scheduler/src/scss/scheduler";
-@import "~@govflanders/vl-ui-search-filter/src/scss/search-filter";
 @import "~@govflanders/vl-ui-search-results/src/scss/search-results";
 @import "~@govflanders/vl-ui-share-buttons/src/scss/share-buttons";
 @import "~@govflanders/vl-ui-show-on-select/src/scss/show-on-select";
