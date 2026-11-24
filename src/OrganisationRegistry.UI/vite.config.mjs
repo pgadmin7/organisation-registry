@@ -80,6 +80,15 @@ const skipLongStackTrace = (mode) => ({
   load: (id) => (id === "\0empty" ? "" : null),
 });
 
+// One origin for Angular (/), the API (/api) and Vue2 (/v2), so both apps share the login.
+const gateway = {
+  allowedHosts: ["organisatie.dev-vlaanderen.local", "oauth.pstmn.io", ".gitrebase.be"], // + wildcards
+  proxy: {
+    "/api": { target: process.env.API_ENDPOINT || "https://localhost:2443", rewrite: (p) => p.replace(/^\/api/, "") },
+    "/v2": { target: process.env.VUE_SERVER || "https://localhost:8443", ws: true }, // npm run serve | preview
+  },
+};
+
 export default defineConfig(({ mode }) => ({
   root,
   base: "/",
@@ -90,38 +99,24 @@ export default defineConfig(({ mode }) => ({
     angularResources(),
     decorators(),
     copyAssets(),
-    // The dev server is the single origin for Angular (/), the API (/api) and Vue2 (/v2); see the plugin header.
+    // Extras on top of the Vite server options below (see the plugin header)
     devGateway({
-      // names that point at 127.0.0.1 in your hosts file and are handled like localhost
-      urlForwarders: [
-        "organisatie.dev-vlaanderen.local",
-        "or-ui.gitrebase.be",
-        "oauth.pstmn.io",
-        ...(process.env.URL_FORWARDERS?.split(",") ?? []),
-      ],
-      urlRewrites: {
-        "/api": { target: process.env.API_ENDPOINT || "https://localhost:2443", stripPrefix: true },
-        // dev: Vue2's own dev server (`npm run serve`); preview: its built dist
-        "/v2": {
-          target: process.env.VUE_DEV_SERVER || "https://localhost:8443",
-          ws: true,
-          mount: fileURLToPath(new URL("../OrganisationRegistry.Vue2/dist", import.meta.url)),
-        },
-        // OAuth callback of a Postman-style client, sent on to the UI
-        "/v1/browser-callback": { redirect: process.env.OIC_TARGET || "https://or-ui.gitrebase.be/#/oic" },
-      },
+      sniCopy: true,
+      noTLSVerify: true,
+      xForwardedHost: true,
+      httpsPort: Number(process.env.HTTPS_PORT ?? 443),
+      httpPort: Number(process.env.HTTP_PORT ?? 9007),
+      redirects: { "/v1/browser-callback": process.env.OIC_TARGET || "https://or-ui.gitrebase.be/#/oic" },
       // same keys as init.sh; the UI and API urls follow whatever host the browser used
-      runtimeConfig: {
-        organisationRegistryVersion: (env) => `v2-${env.API_VERSION ?? ""}`,
-        organisationRegistryApiEndpoint: (_, origin) => `${origin}/api`,
-        organisationRegistryUiEndpoint: (_, origin) => origin,
-        organisationRegistryInformatieVlaanderenLink: "AIV_URI",
-        otelServerUri: "OTEL_SERVER_URI",
-        otelDistributedTracingOrigins: "OTEL_DISTRIBUTED_TRACING_ORIGINS",
-        environmentName: "ENV_NAME",
-      },
-      httpsPort: Number(process.env.HTTPS_PORT ?? 443), // so forwarders work without a port; 0 = off
-      httpPort: Number(process.env.HTTP_PORT ?? 9007), // plain HTTP for tunnels; 0 = off
+      runtimeConfig: (origin, env) => ({
+        organisationRegistryVersion: `v2-${env.API_VERSION ?? ""}`,
+        organisationRegistryApiEndpoint: `${origin}/api`,
+        organisationRegistryUiEndpoint: origin,
+        organisationRegistryInformatieVlaanderenLink: env.AIV_URI ?? "",
+        otelServerUri: env.OTEL_SERVER_URI ?? "",
+        otelDistributedTracingOrigins: env.OTEL_DISTRIBUTED_TRACING_ORIGINS ?? "",
+        environmentName: env.ENV_NAME ?? "",
+      }),
     }),
   ],
   resolve: {
@@ -144,4 +139,6 @@ export default defineConfig(({ mode }) => ({
     target: "es2015",
     sourcemap: true,
   },
+  server: gateway,
+  preview: gateway,
 }));

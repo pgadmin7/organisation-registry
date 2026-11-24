@@ -1,31 +1,22 @@
-// Vite plugin that turns the dev/preview server into a small local gateway. Everything is plain localhost by
-// default; the options only say which extra names and paths the server answers to.
+// Small extras on top of Vite's own server options (`server.allowedHosts` incl. ".example.com" wildcards,
+// `server.proxy`, ...), which stay the place to configure hosts and proxies.
 //
-//   urlForwarders  host names that reach this server (they point at 127.0.0.1 in your hosts file). A request for
-//                  abc.com/api/v1/me is handled exactly like localhost:<port>/api/v1/me. Each forwarder gets a
-//                  throwaway certificate, made in memory and gone when the server stops (needs openssl).
-//   urlRewrites    path prefix -> what to do with it. Anything not listed is served 1:1 by the dev server.
-//                    { target, stripPrefix?, ws? }  proxy to another server (`stripPrefix`: /api/x -> target/x)
-//                    { target, mount }              same in dev; preview serves the `mount` directory instead
-//                    { redirect }                   302 to another url, query string kept
-//   runtimeConfig  serves /config.js: window.<key> = env var name, or (env, origin) => value
-//   httpsPort      extra TLS listener (e.g. 443, so forwarders work without a port; 0 = off)
+//   sniCopy        mint a throwaway certificate (in memory, 1 day, needs openssl) for the host name the client
+//                  asked for, when `allowedHosts` accepts it. Default certificate: localhost.
+//   noTLSVerify    proxy targets may have self-signed certificates (`secure: false` on every proxy entry)
+//   xForwardedHost send the original Host to the proxy targets as X-Forwarded-Host
+//   redirects      { "/path": "https://url" } answered with a 302, query string kept
+//   runtimeConfig  (origin, env) => ({ key: value }), served as /config.js (window.key = value)
+//   httpsPort      extra TLS listener, e.g. 443 so allowed hosts work without a port (0 = off)
 //   httpPort       extra plain-HTTP listener, for tunnels that terminate TLS (0 = off)
-//
-//   devGateway({
-//     urlForwarders: ["app.example.com"],
-//     urlRewrites: { "/api": { target: "https://localhost:2443", stripPrefix: true } },
-//     runtimeConfig: { apiEndpoint: (env, origin) => `${origin}/api` },
-//   })
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer as createHttpServer } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
 import { tmpdir } from "node:os";
-import { extname, join, normalize } from "node:path";
+import { join } from "node:path";
 import { createSecureContext } from "node:tls";
 
-// Self-signed, valid for a day, never kept on disk.
 const throwawayPair = (host) => {
   const dir = mkdtempSync(join(tmpdir(), "dev-gateway-"));
   try {
@@ -43,120 +34,81 @@ const throwawayPair = (host) => {
   }
 };
 
-const mime = {
-  ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
-  ".json": "application/json", ".map": "application/json", ".svg": "image/svg+xml", ".png": "image/png",
-  ".jpg": "image/jpeg", ".gif": "image/gif", ".ico": "image/x-icon", ".woff": "font/woff",
-  ".woff2": "font/woff2", ".ttf": "font/ttf", ".eot": "application/vnd.ms-fontobject",
-};
+const first = (v) => (Array.isArray(v) ? v[0] : v)?.split(",")[0].trim();
+const hostOf = (req) => first(req.headers.host ?? req.headers[":authority"]) ?? "";
 
-// Static mount with an index.html fallback (single page app), like nginx try_files.
-const serveMount = (prefix, dir, path, res) => {
-  const rel = normalize(path.slice(prefix.length) || "/").replace(/^([/\\]*\.\.)+/, "");
-  let file = join(dir, rel);
-  if (!file.startsWith(dir) || !existsSync(file) || statSync(file).isDirectory()) file = join(dir, "index.html");
-  if (!existsSync(file)) {
-    res.statusCode = 404;
-    return res.end(`${prefix}: nothing built in ${dir}`);
-  }
-  res.setHeader("Content-Type", mime[extname(file)] ?? "application/octet-stream");
-  res.setHeader("Cache-Control", "no-store");
-  res.end(readFileSync(file));
-};
-
-const matches = (path, prefix) => path === prefix || path.startsWith(prefix + "/");
-
-export const devGateway = ({ urlForwarders = [], urlRewrites = {}, runtimeConfig, httpsPort = 0, httpPort = 0 } = {}) => {
+export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {}, runtimeConfig, httpsPort = 0, httpPort = 0 } = {}) => {
+  let allowedHosts = [];
   const contexts = new Map();
   let localhostPair;
 
-  // The origin the browser used. Behind a tunnel that terminates TLS the scheme/host come from its headers.
+  // Vite's allowedHosts: true, "name" or ".name" (the name and all its subdomains)
+  const allowed = (host) =>
+    allowedHosts === true ||
+    allowedHosts.some((d) => (d.startsWith(".") ? host === d.slice(1) || host.endsWith(d) : host === d));
+  const local = (host) => host === "localhost" || host.endsWith(".localhost") || /^[\d.]+$|^\[.*\]$/.test(host);
+
+  // The origin the browser used; behind a tunnel that terminates TLS the scheme/host come from its headers.
   const origin = (req) => {
-    const first = (v) => (Array.isArray(v) ? v[0] : v)?.split(",")[0].trim();
     let scheme = first(req.headers["x-forwarded-proto"]);
     try {
       scheme ??= JSON.parse(req.headers["cf-visitor"] ?? "{}").scheme; // Cloudflare
     } catch {}
     scheme ??= req.headers[":scheme"] ?? (req.socket.encrypted ? "https" : "http");
-    const host = first(req.headers["x-forwarded-host"]) ?? req.headers.host ?? req.headers[":authority"];
-    return `${scheme}://${host}`;
+    return `${scheme}://${first(req.headers["x-forwarded-host"]) ?? hostOf(req)}`;
   };
 
-  const configJs = (req) =>
-    "// Runtime configuration generated by vite-plugin-dev-gateway\n" +
-    Object.entries(runtimeConfig)
-      .map(([key, source]) => {
-        const value = typeof source === "function" ? source(process.env, origin(req)) : (process.env[source] ?? "");
-        return `window.${key}=${JSON.stringify(value)};\n`;
-      })
-      .join("");
-
-  // The extra listeners bypass Vite's own host check, so repeat it (DNS rebinding protection).
-  const knownHost = (req) => {
-    const host = (req.headers.host ?? req.headers[":authority"] ?? "").replace(/:\d+$/, "");
-    return host === "localhost" || host.endsWith(".localhost") || /^[\d.]+$|^\[.*\]$/.test(host) || urlForwarders.includes(host);
-  };
-
-  const handler = (preview) => (req, res, next) => {
-    if (!knownHost(req)) {
+  const middleware = (req, res, next) => {
+    // extra listeners bypass Vite's own host check, so repeat it (DNS rebinding protection)
+    const host = hostOf(req).replace(/:\d+$/, "");
+    if (!local(host) && !allowed(host)) {
       res.statusCode = 403;
-      return res.end("dev-gateway: host not in urlForwarders");
+      return res.end("dev-gateway: host not in allowedHosts");
     }
     const [path, query] = (req.url ?? "/").split("?");
-    const prefix = Object.keys(urlRewrites).find((p) => matches(path, p));
-    const rule = prefix && urlRewrites[prefix];
-    if (rule?.redirect) {
+    const redirect = Object.entries(redirects).find(([p]) => path === p || path.startsWith(p + "/"));
+    if (redirect) {
       res.statusCode = 302;
-      res.setHeader("Location", rule.redirect + (query ? `?${query}` : ""));
+      res.setHeader("Location", redirect[1] + (query ? `?${query}` : ""));
       return res.end();
     }
     if (runtimeConfig && path === "/config.js") {
       res.setHeader("Content-Type", "application/javascript");
       res.setHeader("Cache-Control", "no-store");
-      return res.end(configJs(req));
+      return res.end(
+        "// Runtime configuration generated by vite-plugin-dev-gateway\n" +
+          Object.entries(runtimeConfig(origin(req), process.env))
+            .map(([k, v]) => `window.${k}=${JSON.stringify(v)};\n`)
+            .join(""),
+      );
     }
-    if (preview && rule?.mount) return serveMount(prefix, rule.mount, path, res);
     next();
   };
 
-  // Extra listeners share the dev server's middleware stack and websocket upgrades (HMR, proxied sockets).
-  const twin = (server, https) => {
+  // Extra listeners share the middleware stack and websocket upgrades (HMR, proxied sockets).
+  const twins = (server, https) => {
     const log = server.config.logger;
-    const open = (port, hostname, create, label) => {
-      if (!port) return;
-      const twinServer = create();
-      twinServer.on("upgrade", (...args) => server.httpServer.emit("upgrade", ...args));
-      twinServer.on("error", (e) =>
-        log.warn(`dev-gateway: ${label} port ${port} not used (${e.code}${e.code === "EACCES" ? ", try: sudo setcap 'cap_net_bind_service=+ep' $(which node)" : ""})`));
-      twinServer.listen(port, hostname, () => log.info(`  ➜  dev-gateway: ${label} on ${hostname}:${port}`));
-      server.httpServer.once("close", () => twinServer.close());
-    };
     const hostname = process.env.HTTP_HOST || "127.0.0.1";
-    open(httpsPort, hostname, () => createHttpsServer(https, server.middlewares), "https");
-    open(httpPort, hostname, () => createHttpServer(server.middlewares), "http (no TLS, for tunnels)");
+    const open = (port, create, label) => {
+      if (!port) return;
+      const twin = create();
+      twin.on("upgrade", (...args) => server.httpServer.emit("upgrade", ...args));
+      twin.on("error", (e) =>
+        log.warn(`dev-gateway: ${label} port ${port} not used (${e.code}${e.code === "EACCES" ? ", try: sudo setcap 'cap_net_bind_service=+ep' $(which node)" : ""})`));
+      twin.listen(port, hostname, () => log.info(`  ➜  dev-gateway: ${label} on ${hostname}:${port}`));
+      server.httpServer.once("close", () => twin.close());
+    };
+    open(httpsPort, () => createHttpsServer(https, server.middlewares), "https");
+    open(httpPort, () => createHttpServer(server.middlewares), "http (no TLS)");
   };
 
-  const section = (userSection, preview) => {
-    const proxy = Object.fromEntries(
-      Object.entries(urlRewrites)
-        .filter(([, r]) => r.target && !(preview && r.mount))
-        .map(([prefix, r]) => [prefix, {
-          target: r.target,
-          changeOrigin: true,
-          secure: false,
-          ws: r.ws,
-          ...(r.stripPrefix && { rewrite: (p) => p.slice(prefix.length) || "/" }),
-        }]),
-    );
-    const own = userSection?.https && typeof userSection.https === "object" ? userSection.https : null;
+  const https = (own) => {
     localhostPair ??= own ? null : throwawayPair("localhost");
     return {
-      allowedHosts: urlForwarders,
-      proxy,
-      https: {
-        ...(own ?? localhostPair),
+      ...(own ?? localhostPair),
+      ...(sniCopy && {
         SNICallback(host, cb) {
-          if (!urlForwarders.includes(host)) return cb(null, undefined); // localhost, IPs: the default certificate
+          if (!host || local(host) || !allowed(host)) return cb(null, undefined); // the default certificate
           try {
             if (!contexts.has(host)) contexts.set(host, createSecureContext(throwawayPair(host)));
             cb(null, contexts.get(host));
@@ -164,20 +116,43 @@ export const devGateway = ({ urlForwarders = [], urlRewrites = {}, runtimeConfig
             cb(e);
           }
         },
-      },
+      }),
     };
+  };
+
+  const tweakProxy = (proxy = {}) => {
+    for (const [path, entry] of Object.entries(proxy)) {
+      const o = (proxy[path] = typeof entry === "string" ? { target: entry } : entry);
+      if (noTLSVerify) o.secure ??= false;
+      if (xForwardedHost && !o.xForwardedHost) {
+        o.xForwardedHost = true;
+        const configure = o.configure;
+        o.configure = (p, opts) => {
+          configure?.(p, opts);
+          p.on("proxyReq", (proxyReq, req) => proxyReq.setHeader("x-forwarded-host", hostOf(req)));
+        };
+      }
+    }
   };
 
   return {
     name: "dev-gateway",
-    config: (config) => ({ server: section(config.server, false), preview: section(config.preview, true) }),
+    config: (config) => ({
+      server: { https: https(config.server?.https || null) },
+      preview: { https: https(config.preview?.https || null) },
+    }),
+    configResolved(config) {
+      allowedHosts = config.server.allowedHosts;
+      tweakProxy(config.server.proxy);
+      if (config.preview.proxy !== config.server.proxy) tweakProxy(config.preview.proxy);
+    },
     configureServer(server) {
-      server.middlewares.use(handler(false));
-      twin(server, server.config.server.https);
+      server.middlewares.use(middleware);
+      twins(server, server.config.server.https);
     },
     configurePreviewServer(server) {
-      server.middlewares.use(handler(true));
-      twin(server, server.config.preview.https);
+      server.middlewares.use(middleware);
+      twins(server, server.config.preview.https);
     },
   };
 };

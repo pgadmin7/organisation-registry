@@ -36,4 +36,6 @@ export default defineConfig({
     port: 8443,
     strictPort: true,
   },
+  // `npm run preview` serves the build on the same port, so the Angular dev server's /v2 proxy finds it
+  preview: { port: 8443, strictPort: true },
 });

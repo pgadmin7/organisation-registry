@@ -28,15 +28,13 @@ npm run start:hmr
 # browse to https://localhost:5173 (self-signed certificate)
 ```
 
-The dev server is a small gateway (`src/OrganisationRegistry.UI/vite-plugin-dev-gateway.mjs`, configured in its `vite.config.mjs`), plain `localhost` on Vite's default port:
+The dev server is plain `localhost` on Vite's default port and also acts as a small gateway. It is configured with Vite's own options in `src/OrganisationRegistry.UI/vite.config.mjs` (`server.allowedHosts` with `.example.com` wildcards, `server.proxy`), plus a few extras from `vite-plugin-dev-gateway.mjs`:
 
-- `/api` is forwarded to the API (`API_ENDPOINT`, default `https://localhost:2443`), so the UI talks to its own origin.
-- `/v2` is forwarded to the Vue2 dev server: run `npm run serve` in `src/OrganisationRegistry.Vue2` and browse to `https://localhost:5173/v2/`. Both apps share one origin, so they share the login.
-- Every other path is served 1:1 by the dev server.
-- `urlForwarders` are host names you point at `127.0.0.1` in your `hosts` file (for example `organisatie.dev-vlaanderen.local`, needed for the registered login redirect). They are handled exactly like localhost, `abc.com/api/v1/me` like `localhost:5173/api/v1/me`, and get a throwaway certificate that lives in memory only. Without a port they arrive on 443: `sudo setcap 'cap_net_bind_service=+ep' $(which node)` (or `HTTPS_PORT=0` to skip it).
-- `/config.js` is built from the environment like `init.sh` does (`API_VERSION`, `AIV_URI`, `OTEL_SERVER_URI`, `OTEL_DISTRIBUTED_TRACING_ORIGINS`, `ENV_NAME`); the UI and API urls follow the host you browse with.
-- Plain HTTP on `127.0.0.1:9007` (`HTTP_PORT`, `0` = off) is meant for tunnels that terminate TLS.
-- `npm run preview` serves the built `wwwroot` and the built Vue2 `dist` the same way (build both first).
+- `/api` is proxied to the API (`API_ENDPOINT`, default `https://localhost:2443`) and `/v2` to the Vue2 server (`npm run serve`, or `npm run preview` for its build, in `src/OrganisationRegistry.Vue2`), so both apps and the API share one origin and one login. Every other path is served 1:1.
+- Hosts in `allowedHosts` (for example `organisatie.dev-vlaanderen.local`, needed for the registered login redirect) are handled like localhost once they point at `127.0.0.1` in your `hosts` file. `sniCopy` gives each a throwaway certificate, in memory only. Without a port they arrive on 443: `sudo setcap 'cap_net_bind_service=+ep' $(which node)` (or `HTTPS_PORT=0` to skip it).
+- `noTLSVerify` and `xForwardedHost` apply to the proxy entries; `/config.js` is built from the environment like `init.sh` does, with the UI and API urls following the host you browse with.
+- Plain HTTP on `127.0.0.1:9007` (`HTTP_PORT`, `0` = off) is for tunnels that terminate TLS (`X-Forwarded-Proto` is honoured).
+- `npm run preview` serves the built `wwwroot` the same way.
 
 #### To run external dependencies
 
