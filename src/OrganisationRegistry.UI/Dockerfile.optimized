@@ -2,7 +2,7 @@
 # UI build matching exact CI process from GitHub Actions
 
 # Stage 1: Build Angular application with exact CI process
-FROM node:16.15.0-alpine as builder
+FROM node:26.13-alpine as builder
 
 # Install OS dependencies for native modules
 RUN apk add --no-cache python3 make g++
