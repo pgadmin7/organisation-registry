@@ -2,7 +2,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 
-import * as moment from 'moment/moment';
+import moment from 'moment/moment';
 
 import { AlertService, AlertBuilder } from 'core/alert';
 

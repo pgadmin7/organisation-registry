@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="utf-8">
@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
   <meta http-equiv="cleartype" content="on">
 
-  <title><%= webpackConfig.metadata.title %></title>
+  <title>Wegwijs</title>
 
   <link rel="search" href="/assets/opensearchdescription.xml" type="application/opensearchdescription+xml"
         title="wegwijs.vlaanderen.be"/>
@@ -17,13 +17,24 @@
   <link href="/assets/css/loader.css" rel="stylesheet"/>
   <script type="text/javascript" src="/config.js"></script>
 
-  <meta name="description" content="<%= webpackConfig.metadata.title %>">
+  <meta name="description" content="Wegwijs">
 
-  <% if (webpackConfig.htmlElements.headTags) { %>
-  <%= webpackConfig.htmlElements.headTags %>
-  <% } %>
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon/apple-touch-icon.png?v=gAElMxQYY">
+  <link rel="icon" type="image/png" sizes="194x194" href="/assets/icon/favicon-194x194.png?v=gAElMxQYY">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon/android-chrome-192x192.png?v=gAElMxQYY">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icon/favicon-32x32.png?v=gAElMxQYY">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icon/favicon-16x16.png?v=gAElMxQYY">
+  <link rel="mask-icon" color="#ffffff" href="/assets/icon/safari-pinned-tab.svg?v=gAElMxQYY">
+  <link rel="shortcut icon" href="/assets/icon/favicon.ico?v=gAElMxQYY">
+  <link rel="manifest" href="/assets/manifest.json?v=gAElMxQYY">
+  <meta name="apple-mobile-web-app-title" content="Wegwijs">
+  <meta name="application-name" content="Wegwijs">
+  <meta name="msapplication-TileColor" content="#ffe615">
+  <meta name="msapplication-TileImage" content="/assets/icon/mstile-144x144.png?v=gAElMxQYY">
+  <meta name="msapplication-config" content="/assets/browserconfig.xml?v=gAElMxQYY">
+  <meta name="theme-color" content="#ffe615">
 
-  <base href="<%= webpackConfig.metadata.baseUrl %>">
+  <base href="/">
 
 </head>
 
@@ -100,9 +111,8 @@
 <script type="text/javascript" src="/assets/js/vlaanderen-ui-select-patch.js"></script>
 <script type="text/javascript" src="/assets/js/vlaanderen-ui-multiselect-patch.js"></script>
 <script type="text/javascript" src="/assets/js/vlaanderen-ui-datepicker-patch.js"></script>
-<% if (webpackConfig.metadata.isDevServer && webpackConfig.metadata.HMR !== true) { %>
-  <!-- Webpack Dev Server reload -->
-  <script src="/webpack-dev-server.js"></script>
-  <% } %>
+<script type="module" src="/polyfills.browser.ts"></script>
+<script type="module" src="/vendor.browser.ts"></script>
+<script type="module" src="/main.browser.ts"></script>
 </body>
 </html>
