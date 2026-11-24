@@ -13,6 +13,11 @@ npm ci --legacy-peer-deps
 ```
 npm run serve
 ```
+The dev server listens on port 443 of `organisatie.dev-vlaanderen.local` (see the hosts entries in the root README).
+On Linux, allow node to bind that port once per node version (same as for the Angular UI):
+```
+sudo setcap 'cap_net_bind_service=+ep' "$(readlink -f "$(which node)")"
+```
 
 ### Compiles and minifies for production
 ```
