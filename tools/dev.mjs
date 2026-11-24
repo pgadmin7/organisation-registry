@@ -1,10 +1,11 @@
-// One command for both frontends (no dependencies):  node tools/dev.mjs serve | preview | build [--dev]
+// One command for both frontends (no dependencies):  node tools/dev.mjs serve | preview | build [--dev] | clean
 //   serve    UI dev server + Vue2 dev server; the UI one proxies /v2 and /api (see vite-plugin-dev-gateway.mjs)
 //   preview  UI + Vue2 preview of the builds, building first whatever has no build yet
 //   build    both builds, production unless --dev
+//   clean    removes node_modules and the build output (wwwroot / dist) of both
 // Missing node_modules are installed first.
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +19,7 @@ const projects = {
     build: ["npm", "run", "build:prod"],
     buildDev: ["npm", "run", "build"],
     built: "wwwroot/index.html",
+    clean: ["node_modules", "wwwroot"],
   },
   vue2: {
     dir: "src/OrganisationRegistry.Vue2",
@@ -27,6 +29,7 @@ const projects = {
     build: ["npm", "run", "build"],
     buildDev: ["npm", "run", "build", "--", "--mode", "development"],
     built: "dist/index.html",
+    clean: ["node_modules", "dist"],
   },
 };
 
@@ -96,8 +99,19 @@ const commands = {
   ),
 };
 
+if (command === "clean") {
+  for (const p of Object.values(projects))
+    for (const name of p.clean) {
+      const path = join(dir(p), name);
+      if (!existsSync(path)) continue;
+      rmSync(path, { recursive: true, force: true });
+      console.log(`removed ${p.dir}/${name}`);
+    }
+  process.exit(0);
+}
+
 if (!commands[command]) {
-  console.error("usage: node tools/dev.mjs serve | preview | build [--dev]");
+  console.error("usage: node tools/dev.mjs serve | preview | build [--dev] | clean");
   process.exit(2);
 }
 process.exit(await all(commands[command]));

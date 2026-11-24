@@ -13,6 +13,7 @@
     "serve": "node tools/dev.mjs serve",
     "preview": "node tools/dev.mjs preview",
     "build": "node tools/dev.mjs build",
+    "clean": "node tools/dev.mjs clean",
     "commit": "git-cz",
     "semantic-release": "semantic-release",
     "prepare": "husky"

@@ -25,6 +25,7 @@ nvm use
 npm run serve    # Angular UI and Vue2 dev servers together
 npm run preview  # both builds, built first if there is no build yet
 npm run build    # both builds, production (`npm run build -- --dev` for development mode)
+npm run clean    # removes node_modules and the build output (wwwroot / dist) of both
 # browse to https://localhost:5173 (self-signed certificate)
 ```
 
