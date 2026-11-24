@@ -110,7 +110,7 @@ export default defineConfig(({ mode }) => ({
       // same keys as init.sh; the UI and API urls follow whatever host the browser used
       runtimeConfig: (origin, env) => ({
         organisationRegistryVersion: `v2-${env.API_VERSION ?? ""}`,
-        organisationRegistryApiEndpoint: `${origin}/api`,
+        organisationRegistryApiEndpoint: "/api", // relative: always the page's own scheme and host, never mixed content
         organisationRegistryUiEndpoint: origin,
         organisationRegistryInformatieVlaanderenLink: env.AIV_URI ?? "",
         otelServerUri: env.OTEL_SERVER_URI ?? "",
