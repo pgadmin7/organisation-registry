@@ -114,8 +114,9 @@ dotnet ef migrations add <Name> --context OrganisationRegistryContext --startup-
 dotnet ef database update --context OrganisationRegistryContext
 
 # Run UI in development
+cd src/OrganisationRegistry.UI
 nvm use
-npm install
+npm install --legacy-peer-deps
 npm run start:hmr
 ```
 

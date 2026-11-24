@@ -125,9 +125,9 @@ Our `build.sh` script knows a few tricks. By default it runs with the `Test` tar
 
 The buildserver passes in `CI_BUILD_NUMBER` as an integer to version the results and `BUILD_DOCKER_REGISTRY` to point to a Docker registry to push the resulting Docker images.
 
-#### NpmInstall
+#### Commit tooling (repository root)
 
-Run an `npm install` to setup Commitizen and Semantic Release.
+Run an `npm install` in the repository root (`nvm use` first, see `.nvmrc`) to setup Commitizen, commitlint, Husky git hooks and Semantic Release. The UI projects have their own `package.json` and are installed separately.
 
 #### DotNetCli
 
