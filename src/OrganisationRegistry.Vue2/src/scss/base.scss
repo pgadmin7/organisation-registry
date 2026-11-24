@@ -50,7 +50,6 @@ $vl-icon-font-location: '~@govflanders/vl-ui-core/dist/font/iconfont/';
 @import "~@govflanders/vl-ui-checkbox/src/scss/checkbox";
 @import "~@govflanders/vl-ui-checkbox-tile/src/scss/checkbox-tile";
 @import "~@govflanders/vl-ui-content-footer/src/scss/content-footer";
-@import "~@govflanders/vl-ui-content-header/src/scss/content-header";
 
 @import "~@govflanders/vl-ui-datepicker/src/scss/datepicker";
 @import "~@govflanders/vl-ui-description-data/src/scss/description-data";
@@ -66,8 +65,6 @@ $vl-icon-font-location: '~@govflanders/vl-ui-core/dist/font/iconfont/';
 
 @import "~@govflanders/vl-ui-hero-navigation/src/scss/hero-navigation";
 
-@import "~@govflanders/vl-ui-image/src/scss/image";
-@import "~@govflanders/vl-ui-caption/src/scss/caption";
 @import "~@govflanders/vl-ui-info-tile/src/scss/info-tile";
 @import "~@govflanders/vl-ui-infoblock/src/scss/infoblock";
 @import "~@govflanders/vl-ui-input-addon/src/scss/input-addon";
@@ -77,31 +74,23 @@ $vl-icon-font-location: '~@govflanders/vl-ui-core/dist/font/iconfont/';
 
 
 @import "~@govflanders/vl-ui-map/src/scss/map";
-@import "~@govflanders/vl-ui-news-teaser/src/scss/news-teaser";
 @import "~@govflanders/vl-ui-pager/src/scss/pager";
-@import "~@govflanders/vl-ui-person/src/scss/person";
-@import "~@govflanders/vl-ui-person-info/src/scss/person-info";
 @import "~@govflanders/vl-ui-pill-input/src/scss/pill-input";
 @import "~@govflanders/vl-ui-popover/src/scss/popover";
 @import "~@govflanders/vl-ui-progress-bar/src/scss/progress-bar";
 @import "~@govflanders/vl-ui-properties/src/scss/properties";
-@import "~@govflanders/vl-ui-publication-slider/src/scss/publication-slider";
 @import "~@govflanders/vl-ui-push/src/scss/push";
-@import "~@govflanders/vl-ui-quote/src/scss/quote";
 @import "~@govflanders/vl-ui-radio/src/scss/radio";
 @import "~@govflanders/vl-ui-radio-tile/src/scss/radio-tile";
 @import "~@govflanders/vl-ui-range/src/scss/range";
-@import "~@govflanders/vl-ui-scheduler/src/scss/scheduler";
 @import "~@govflanders/vl-ui-search-results/src/scss/search-results";
 @import "~@govflanders/vl-ui-share-buttons/src/scss/share-buttons";
 @import "~@govflanders/vl-ui-show-on-select/src/scss/show-on-select";
 @import "~@govflanders/vl-ui-side-navigation/src/scss/side-navigation";
 @import "~@govflanders/vl-ui-skiplink/src/scss/skiplink";
-@import "~@govflanders/vl-ui-slider/src/scss/slider";
 @import "~@govflanders/vl-ui-spotlight/src/scss/spotlight";
 @import "~@govflanders/vl-ui-steps/src/scss/steps";
 @import "~@govflanders/vl-ui-sticky-bar/src/scss/sticky-bar";
-@import "~@govflanders/vl-ui-teaser/src/scss/teaser";
 @import "~@govflanders/vl-ui-textarea/src/scss/textarea";
 @import "~@govflanders/vl-ui-toaster/src/scss/toaster";
 @import "~@govflanders/vl-ui-toggle/src/scss/toggle";
