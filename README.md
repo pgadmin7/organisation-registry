@@ -31,9 +31,9 @@ npm run start:hmr
 The dev server is plain `localhost` on Vite's default port and also acts as a small gateway. It is configured with Vite's own options in `src/OrganisationRegistry.UI/vite.config.mjs` (`server.allowedHosts` with `.example.com` wildcards, `server.proxy`), plus a few extras from `vite-plugin-dev-gateway.mjs`:
 
 - `/api` is proxied to the API (`API_ENDPOINT`, default `https://localhost:2443`) and `/v2` to the Vue2 server (`npm run serve`, or `npm run preview` for its build, in `src/OrganisationRegistry.Vue2`), so both apps and the API share one origin and one login. Every other path is served 1:1.
-- Hosts in `allowedHosts` (for example `organisatie.dev-vlaanderen.local`, needed for the registered login redirect) are handled like localhost once they point at `127.0.0.1` in your `hosts` file. `sniCopy` gives each a throwaway certificate, in memory only. Without a port they arrive on 443: `sudo setcap 'cap_net_bind_service=+ep' $(which node)` (extra TLS listeners are `HTTPS_PORTS`, default `443,9007`; empty = none).
+- Hosts in `allowedHosts` (for example `organisatie.dev-vlaanderen.local`, needed for the registered login redirect) are handled like localhost once they point at `127.0.0.1` in your `hosts` file. `sniCopy` gives each a throwaway certificate, in memory only. Without a port they arrive on 443: `sudo setcap 'cap_net_bind_service=+ep' $(which node)` (or `HTTPS_PORT=0` to skip it).
 - `noTLSVerify` and `xForwardedHost` apply to the proxy entries; `/config.js` is built from the environment like `init.sh` does, with the UI and API urls following the host you browse with.
-- Port 9007 is also TLS (for tunnels; `X-Forwarded-Proto` is honoured).
+- Plain HTTP on `127.0.0.1:9007` (`HTTP_PORT`, `0` = off) is for tunnels that terminate TLS (`X-Forwarded-Proto` is honoured).
 - `npm run preview` serves the built `wwwroot` the same way.
 
 #### To run external dependencies

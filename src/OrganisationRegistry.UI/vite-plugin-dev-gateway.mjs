@@ -7,10 +7,11 @@
 //   xForwardedHost send the original Host to the proxy targets as X-Forwarded-Host
 //   redirects      { "/path": "https://url" } answered with a 302, query string kept
 //   runtimeConfig  (origin, env) => ({ key: value }), served as /config.js (window.key = value)
-//   httpsPorts     extra TLS listeners on the same server, e.g. [443, 9007]: 443 so allowed hosts work
-//                  without a port, 9007 for a tunnel (tunnels that verify the origin need noTLSVerify)
+//   httpsPort      extra TLS listener, e.g. 443 so allowed hosts work without a port (0 = off)
+//   httpPort       extra plain-HTTP listener, for tunnels that terminate TLS (0 = off)
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { createServer as createHttpServer } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -36,7 +37,7 @@ const throwawayPair = (host) => {
 const first = (v) => (Array.isArray(v) ? v[0] : v)?.split(",")[0].trim();
 const hostOf = (req) => first(req.headers.host ?? req.headers[":authority"]) ?? "";
 
-export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {}, runtimeConfig, httpsPorts = [] } = {}) => {
+export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {}, runtimeConfig, httpsPort = 0, httpPort = 0 } = {}) => {
   let allowedHosts = [];
   const contexts = new Map();
   let localhostPair;
@@ -88,14 +89,17 @@ export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {
   const twins = (server, https) => {
     const log = server.config.logger;
     const hostname = process.env.HTTP_HOST || "127.0.0.1";
-    for (const port of httpsPorts) {
-      const twin = createHttpsServer(https, server.middlewares);
+    const open = (port, create, label) => {
+      if (!port) return;
+      const twin = create();
       twin.on("upgrade", (...args) => server.httpServer.emit("upgrade", ...args));
       twin.on("error", (e) =>
-        log.warn(`dev-gateway: port ${port} not used (${e.code}${e.code === "EACCES" ? ", try: sudo setcap 'cap_net_bind_service=+ep' $(which node)" : ""})`));
-      twin.listen(port, hostname, () => log.info(`  ➜  dev-gateway: https://${hostname}:${port}/`));
+        log.warn(`dev-gateway: ${label} port ${port} not used (${e.code}${e.code === "EACCES" ? ", try: sudo setcap 'cap_net_bind_service=+ep' $(which node)" : ""})`));
+      twin.listen(port, hostname, () => log.info(`  ➜  dev-gateway: ${label} on ${hostname}:${port}`));
       server.httpServer.once("close", () => twin.close());
-    }
+    };
+    open(httpsPort, () => createHttpsServer(https, server.middlewares), "https");
+    open(httpPort, () => createHttpServer(server.middlewares), "http (no TLS)");
   };
 
   const https = (own) => {

@@ -104,7 +104,8 @@ export default defineConfig(({ mode }) => ({
       sniCopy: true,
       noTLSVerify: true,
       xForwardedHost: true,
-      httpsPorts: (process.env.HTTPS_PORTS ?? "443,9007").split(",").filter(Boolean).map(Number), // "" = none
+      httpsPort: Number(process.env.HTTPS_PORT ?? 443),
+      httpPort: Number(process.env.HTTP_PORT ?? 9007),
       redirects: { "/v1/browser-callback": process.env.OIC_TARGET || "https://or-ui.gitrebase.be/#/oic" },
       // same keys as init.sh; the UI and API urls follow whatever host the browser used
       runtimeConfig: (origin, env) => ({
