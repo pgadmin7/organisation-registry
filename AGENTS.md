@@ -85,7 +85,7 @@ src/
   OrganisationRegistry.Infrastructure/   # Shared infrastructure
   OrganisationRegistry.KboMutations/     # KBO synchronization logic
   OrganisationRegistry.UI/               # Admin UI
-  OrganisationRegistry.Vue/              # Vue.js frontend
+  OrganisationRegistry.Vue2/             # Vue 2.7 frontend (Vite), served at /v2/
 test/
   OrganisationRegistry.UnitTests/        # Core domain unit tests
   OrganisationRegistry.Api.IntegrationTests/  # API integration tests
