@@ -70,9 +70,16 @@ export const devGateway = ({ urlForwarders = [], urlRewrites = {}, runtimeConfig
   const contexts = new Map();
   let localhostPair;
 
+  // The origin the browser used. Behind a tunnel that terminates TLS the scheme/host come from its headers.
   const origin = (req) => {
-    const scheme = req.headers[":scheme"] ?? (req.socket.encrypted ? "https" : "http");
-    return `${scheme}://${req.headers.host ?? req.headers[":authority"]}`;
+    const first = (v) => (Array.isArray(v) ? v[0] : v)?.split(",")[0].trim();
+    let scheme = first(req.headers["x-forwarded-proto"]);
+    try {
+      scheme ??= JSON.parse(req.headers["cf-visitor"] ?? "{}").scheme; // Cloudflare
+    } catch {}
+    scheme ??= req.headers[":scheme"] ?? (req.socket.encrypted ? "https" : "http");
+    const host = first(req.headers["x-forwarded-host"]) ?? req.headers.host ?? req.headers[":authority"];
+    return `${scheme}://${host}`;
   };
 
   const configJs = (req) =>
