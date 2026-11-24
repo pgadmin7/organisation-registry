@@ -4,7 +4,7 @@
 //   sniCopy        mint a throwaway certificate (in memory, 1 day, needs openssl) for the host name the client
 //                  asked for, when `allowedHosts` accepts it. Default certificate: localhost.
 //   noTLSVerify    proxy targets may have self-signed certificates (`secure: false` on every proxy entry)
-//   xForwardedHost send the original Host to the proxy targets as X-Forwarded-Host
+//   xForwardedHost send the original Host to the proxy targets as X-Forwarded-Host (they get their own as Host)
 //   redirects      { "/path": "https://url" } answered with a 302, query string kept
 //   runtimeConfig  (origin, env) => ({ key: value }), served as /config.js (window.key = value)
 //   httpsPort      extra TLS listener, e.g. 443 so allowed hosts work without a port (0 = off)
@@ -123,6 +123,7 @@ export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {
   const tweakProxy = (proxy = {}) => {
     for (const [path, entry] of Object.entries(proxy)) {
       const o = (proxy[path] = typeof entry === "string" ? { target: entry } : entry);
+      o.changeOrigin ??= true; // targets see their own Host (Vite hosts only accept their allowedHosts, for http and ws)
       if (noTLSVerify) o.secure ??= false;
       if (xForwardedHost && !o.xForwardedHost) {
         o.xForwardedHost = true;
