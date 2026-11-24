@@ -39,6 +39,7 @@ const hostOf = (req) => first(req.headers.host ?? req.headers[":authority"]) ?? 
 
 export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {}, runtimeConfig, httpsPort = 0, httpPort = 0 } = {}) => {
   let allowedHosts = [];
+  let configPaths = ["/config.js"];
   const contexts = new Map();
   let localhostPair;
 
@@ -72,7 +73,7 @@ export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {
       res.setHeader("Location", redirect[1] + (query ? `?${query}` : ""));
       return res.end();
     }
-    if (runtimeConfig && path === "/config.js") {
+    if (runtimeConfig && configPaths.includes(path)) {
       res.setHeader("Content-Type", "application/javascript");
       res.setHeader("Cache-Control", "no-store");
       return res.end(
@@ -144,6 +145,7 @@ export const devGateway = ({ sniCopy, noTLSVerify, xForwardedHost, redirects = {
     }),
     configResolved(config) {
       allowedHosts = config.server.allowedHosts;
+      configPaths = ["/config.js", `${config.base}config.js`]; // Vite prefixes the base on root-absolute <script src> in dev
       tweakProxy(config.server.proxy);
       if (config.preview.proxy !== config.server.proxy) tweakProxy(config.preview.proxy);
     },
