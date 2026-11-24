@@ -21,12 +21,14 @@ Please see our [contributing guidelines](CONTRIBUTING.md) before contributing.
 #### To run the UI in live reload mode:
 
 ```bash
-cd src/OrganisationRegistry.UI
 nvm use
-npm install --legacy-peer-deps
-npm run start:hmr
+npm run serve    # Angular UI and Vue2 dev servers together
+npm run preview  # both builds, built first if there is no build yet
+npm run build    # both builds, production (`npm run build -- --dev` for development mode)
 # browse to https://localhost:5173 (self-signed certificate)
 ```
+
+These run `tools/dev.mjs`, which installs missing `node_modules` first and prefixes the output with `[ui]` / `[vue2]`. Each project still has its own scripts (`npm run serve|preview|build` inside `src/OrganisationRegistry.UI` and `src/OrganisationRegistry.Vue2`).
 
 The dev server is plain `localhost` on Vite's default port and also acts as a small gateway. It is configured with Vite's own options in `src/OrganisationRegistry.UI/vite.config.mjs` (`server.allowedHosts` with `.example.com` wildcards, `server.proxy`), plus a few extras from `tools/vite-plugin-dev-gateway.mjs`, which the Vue2 dev server (`https://localhost:8443/v2/`) uses too, so it also has `/api` and its own `/config.js`:
 

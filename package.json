@@ -10,6 +10,9 @@
     "url": "git@github.com:informatievlaanderen/organisation-registry.git"
   },
   "scripts": {
+    "serve": "node tools/dev.mjs serve",
+    "preview": "node tools/dev.mjs preview",
+    "build": "node tools/dev.mjs build",
     "commit": "git-cz",
     "semantic-release": "semantic-release",
     "prepare": "husky"

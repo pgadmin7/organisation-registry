@@ -5,7 +5,8 @@
   "description": "Organisation Registry Angular UI (legacy).",
   "license": "EUPL-1.2",
   "scripts": {
-    "start": "vite --mode development",
+    "serve": "vite --mode development",
+    "start": "npm run serve",
     "start:hmr": "npm start",
     "build": "vite build --mode development",
     "build:dev": "npm run build",

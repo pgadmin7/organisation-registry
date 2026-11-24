@@ -113,11 +113,9 @@ dotnet ef migrations add <Name> --context OrganisationRegistryContext --startup-
 # Apply migrations
 dotnet ef database update --context OrganisationRegistryContext
 
-# Run UI in development
-cd src/OrganisationRegistry.UI
+# Run both frontends (Angular UI + Vue2) in development; also `npm run preview` and `npm run build`
 nvm use
-npm install --legacy-peer-deps
-npm run start:hmr
+npm run serve
 ```
 
 ## Command and Event Patterns
