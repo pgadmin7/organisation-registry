@@ -17,10 +17,7 @@
     ],
     "types": [
       "hammerjs",
-      "jasmine",
       "node",
-      "protractor",
-      "selenium-webdriver",
       "source-map",
       "uglify-js",
       "webpack"
