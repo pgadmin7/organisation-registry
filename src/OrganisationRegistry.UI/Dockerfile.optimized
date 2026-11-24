@@ -18,11 +18,11 @@ COPY src/OrganisationRegistry.UI/patches/ ./patches/
 RUN --mount=type=cache,target=/root/.npm \
     npm install --legacy-peer-deps
 
-# webpack.dev.js reads the https dev certificate from the repo root (../../ relative to the UI folder)
-COPY organisationregistry-ui.pfx /app/organisationregistry-ui.pfx
+# vite.config.mjs imports the dev gateway plugin from the repo's tools folder (../../tools)
+COPY tools/vite-plugin-dev-gateway.mjs /app/tools/vite-plugin-dev-gateway.mjs
 COPY src/OrganisationRegistry.UI/ ./
 
-# Clean and build exactly like CI: npm run build (which uses dev webpack config)
+# Clean and build exactly like CI: npm run build (Vite, development mode)
 RUN npm run clean:dist
 RUN npm run build || (echo "Build completed with TypeScript errors but assets were generated" && ls -la src/OrganisationRegistry.UI/wwwroot/ && test -f src/OrganisationRegistry.UI/wwwroot/index.html)
 

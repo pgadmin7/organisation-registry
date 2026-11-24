@@ -13,7 +13,7 @@ npm ci --legacy-peer-deps
 ```
 npm run serve
 ```
-The dev server listens on https://localhost:8443/v2/ (`npm run build && npm run preview` serves the build on the same port). The Angular dev server proxies `/v2` to it, so
+The dev server listens on https://localhost:8443/v2/ (`npm run build && npm run preview` serves the build on the same port). It proxies `/api` to the API (`API_ENDPOINT`, default `https://localhost:9003`) and serves its own `/config.js`, so it works standalone. The Angular dev server proxies `/v2` to it, so
 https://localhost:5173/v2/ (or any host the Angular dev server forwards, see the root README) works too and shares
 the Angular login.
 

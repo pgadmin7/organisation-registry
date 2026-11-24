@@ -1,12 +1,20 @@
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue2";
-import basicSsl from "@vitejs/plugin-basic-ssl";
+import { devGateway } from "../../tools/vite-plugin-dev-gateway.mjs";
 
 // The app is served below /v2/ (nginx `location /v2` aliases the build output).
 export default defineConfig({
   base: "/v2/",
-  plugins: [vue(), basicSsl()],
+  plugins: [
+    vue(),
+    // https certificate, /config.js and the proxy options below (see tools/vite-plugin-dev-gateway.mjs)
+    devGateway({
+      noTLSVerify: true,
+      xForwardedHost: true,
+      runtimeConfig: () => ({ organisationRegistryApiEndpoint: "/api" }), // relative: the page's own origin
+    }),
+  ],
   resolve: {
     // webpack resolved extensionless .vue imports (import X from "./X")
     extensions: [".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx", ".json", ".vue"],
@@ -32,7 +40,11 @@ export default defineConfig({
     },
   },
   server: {
-    // the Angular dev server proxies /v2 here (VUE_DEV_SERVER there); override with `npm run serve -- --port <port>`
+    // the API, reached through this server (the same /api the Angular dev server offers)
+    proxy: {
+      "/api": { target: process.env.API_ENDPOINT || "https://localhost:9003", rewrite: (p) => p.replace(/^\/api/, "") },
+    },
+    // the Angular dev server proxies /v2 here (VUE_SERVER there); override with `npm run serve -- --port <port>`
     port: 8443,
     strictPort: true,
   },

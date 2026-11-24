@@ -2,7 +2,7 @@ import { cpSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import ts from "typescript5";
-import { devGateway } from "./vite-plugin-dev-gateway.mjs";
+import { devGateway } from "../../tools/vite-plugin-dev-gateway.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 
@@ -84,7 +84,7 @@ const skipLongStackTrace = (mode) => ({
 const gateway = {
   allowedHosts: ["organisatie.dev-vlaanderen.local", "oauth.pstmn.io", ".gitrebase.be"], // + wildcards
   proxy: {
-    "/api": { target: process.env.API_ENDPOINT || "https://localhost:2443", rewrite: (p) => p.replace(/^\/api/, "") },
+    "/api": { target: process.env.API_ENDPOINT || "https://localhost:9003", rewrite: (p) => p.replace(/^\/api/, "") },
     "/v2": { target: process.env.VUE_SERVER || "https://localhost:8443", ws: true }, // npm run serve | preview
   },
 };
