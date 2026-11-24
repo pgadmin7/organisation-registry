@@ -24,11 +24,9 @@
     "@semantic-release/github": "8.1.0",
     "@semantic-release/npm": "9.0.2",
     "@semantic-release/release-notes-generator": "10.0.3",
-    "axios": "^1.5.1",
     "commitizen": "4.2.5",
     "cz-conventional-changelog": "3.3.0",
     "husky": "4.3.8",
-    "jsonwebtoken": "^9.0.2",
     "semantic-release": "17.3.1"
   },
   "husky": {
