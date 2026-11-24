@@ -66,6 +66,11 @@ jobs:
         working-directory: src/OrganisationRegistry.UI
         run: npm run build
 
+      - name: Setup Node.js for Vue
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: src/OrganisationRegistry.Vue2/.nvmrc
+
       - name: Install Vue NPM dependencies
         shell: bash
         working-directory: src/OrganisationRegistry.Vue2

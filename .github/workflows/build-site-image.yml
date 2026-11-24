@@ -39,12 +39,29 @@ jobs:
         with:
           version: ${{ secrets.VBR_DOTNET_VERSION }}
 
-      - name: Setup nodejs
+      - name: Setup nodejs for Angular
         uses: ./.github/actions/setup-nodejs
         with:
-          # build.sh installs and builds Angular + Vue2 itself; both still build on the Angular node version
           node-version-file: src/OrganisationRegistry.UI/.nvmrc
           install: 'false'
+
+      - name: Build Angular site
+        shell: bash
+        run: ./build.sh Site_Build
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Setup nodejs for Vue2
+        uses: ./.github/actions/setup-nodejs
+        with:
+          node-version-file: src/OrganisationRegistry.Vue2/.nvmrc
+          install: 'false'
+
+      - name: Build Vue2 site
+        shell: bash
+        run: ./build.sh Vue_Build
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Containerize
         shell: bash

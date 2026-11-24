@@ -70,7 +70,7 @@ vue_build() {
   local source="src/OrganisationRegistry.UI"
   local vue_source="src/OrganisationRegistry.Vue2"
 
-  npm install --legacy-peer-deps --prefix "${vue_source}"
+  npm ci --legacy-peer-deps --prefix "${vue_source}"
   npm run build --prefix "${vue_source}"
 
   mkdir -p "${dist}/wwwroot/vue"
@@ -114,7 +114,7 @@ case "${target}" in
     site_build
     ;;
   Vue_Build)
-    site_build
+    # needs Site_Build first (copies into the Angular wwwroot); Vue2 runs on its own Node version
     vue_build
     ;;
   Containerize_Api)
@@ -142,8 +142,7 @@ case "${target}" in
     containerize_project "OrganisationRegistry.Rebuilder" "rebuilder"
     ;;
   Containerize_Site)
-    site_build
-    vue_build
+    # expects Site_Build and Vue_Build to have run, each on its own Node version
     containerize_path "${build_dir}/OrganisationRegistry.UI/linux" "ui"
     ;;
   *)
