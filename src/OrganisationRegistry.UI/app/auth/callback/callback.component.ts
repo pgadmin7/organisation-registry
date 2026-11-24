@@ -21,7 +21,7 @@ import {
   Organisation,
   OrganisationService,
 } from "../../services/organisations";
-import * as jwt_decode from "jwt-decode";
+import jwt_decode from "jwt-decode";
 
 @Component({
   templateUrl: "callback.template.html",

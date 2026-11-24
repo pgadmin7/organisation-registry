@@ -2,28 +2,27 @@
 # UI build matching exact CI process from GitHub Actions
 
 # Stage 1: Build Angular application with exact CI process
-FROM node:16.15.0-alpine as builder
+FROM node:26.13-alpine as builder
 
 # Install OS dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-WORKDIR /app
+# The Angular app is self-contained in src/OrganisationRegistry.UI (own package.json + lockfile)
+WORKDIR /app/src/OrganisationRegistry.UI
 
 # Copy package files for dependency caching
-COPY package*.json ./
+COPY src/OrganisationRegistry.UI/package*.json ./
+COPY src/OrganisationRegistry.UI/patches/ ./patches/
 
 # Use npm install with legacy peer deps (exactly like CI)
 RUN --mount=type=cache,target=/root/.npm \
     npm install --legacy-peer-deps
 
-# Copy build configuration and scripts
-COPY tsconfig*.json ./
-COPY config/ ./config/
-COPY scripts/ ./scripts/
-COPY organisationregistry-ui.pfx ./
-COPY src/OrganisationRegistry.UI/ ./src/OrganisationRegistry.UI/
+# vite.config.mjs imports the dev gateway plugin from the repo's tools folder (../../tools)
+COPY tools/vite-plugin-dev-gateway.mjs /app/tools/vite-plugin-dev-gateway.mjs
+COPY src/OrganisationRegistry.UI/ ./
 
-# Clean and build exactly like CI: npm run build (which uses dev webpack config)
+# Clean and build exactly like CI: npm run build (Vite, development mode)
 RUN npm run clean:dist
 RUN npm run build || (echo "Build completed with TypeScript errors but assets were generated" && ls -la src/OrganisationRegistry.UI/wwwroot/ && test -f src/OrganisationRegistry.UI/wwwroot/index.html)
 

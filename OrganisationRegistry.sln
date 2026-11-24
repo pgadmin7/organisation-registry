@@ -8,7 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		.npmrc = .npmrc
 		.nvmrc = .nvmrc
 		build.sh = build.sh
 		CHANGELOG.md = CHANGELOG.md
@@ -20,9 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		package.json = package.json
 		README.md = README.md
 		SEMVER.md = SEMVER.md
-		webpack.config.js = webpack.config.js
-		run_frontend.sh = run_frontend.sh
-		otel-collector-config.yaml = otel-collector-config.yaml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrganisationRegistry.Infrastructure", "src\OrganisationRegistry.Infrastructure\OrganisationRegistry.Infrastructure.csproj", "{B981FD48-3AD3-4613-BA8D-74E1EF7304A2}"
@@ -75,13 +71,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrganisationRegistry.MagdaR
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{7CA3FAD8-5352-4788-9A94-6519B5BFBDD6}"
 	ProjectSection(SolutionItems) = preProject
-		.github\generate-token.js = .github\generate-token.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{C31A5E2C-7DFC-48B0-97BB-0D870EE713BD}"
 ProjectSection(SolutionItems) = preProject
 	.github\workflows\main.yml = .github\workflows\main.yml
-	.github\workflows\pre-merge-tests.yml = .github\workflows\pre-merge-tests.yml
 	.github\workflows\otel.yml = .github\workflows\otel.yml
 	.github\workflows\aws-cli.yml = .github\workflows\aws-cli.yml
 	.github\workflows\build-image.yml = .github\workflows\build-image.yml

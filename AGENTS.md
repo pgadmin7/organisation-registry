@@ -85,7 +85,7 @@ src/
   OrganisationRegistry.Infrastructure/   # Shared infrastructure
   OrganisationRegistry.KboMutations/     # KBO synchronization logic
   OrganisationRegistry.UI/               # Admin UI
-  OrganisationRegistry.Vue/              # Vue.js frontend
+  OrganisationRegistry.Vue2/             # Vue 2.7 frontend (Vite), served at /v2/
 test/
   OrganisationRegistry.UnitTests/        # Core domain unit tests
   OrganisationRegistry.Api.IntegrationTests/  # API integration tests
@@ -113,10 +113,9 @@ dotnet ef migrations add <Name> --context OrganisationRegistryContext --startup-
 # Apply migrations
 dotnet ef database update --context OrganisationRegistryContext
 
-# Run UI in development
+# Run both frontends (Angular UI + Vue2) in development; also `npm run preview` and `npm run build`
 nvm use
-npm install
-npm run start:hmr
+npm run serve
 ```
 
 ## Command and Event Patterns

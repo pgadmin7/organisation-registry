@@ -2,7 +2,7 @@ import { Input, Component, ChangeDetectionStrategy, ChangeDetectorRef, DoCheck }
 import { FormControl } from '@angular/forms';
 import { AfterViewInit, ElementRef, Renderer, ViewChild } from '@angular/core';
 
-import * as moment from 'moment/moment';
+import moment from 'moment/moment';
 
 @Component({
   selector: 'ww-form-group-datepicker',

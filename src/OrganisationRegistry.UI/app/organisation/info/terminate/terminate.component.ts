@@ -2,7 +2,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 
-import * as moment from 'moment/moment';
+import moment from 'moment/moment';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 

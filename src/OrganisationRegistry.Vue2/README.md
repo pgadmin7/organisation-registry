@@ -1,28 +1,25 @@
 # organisation-registry-vue2
 
+Vue 2.7 app built with [Vite](https://vite.dev). Served below `/v2/`.
+
 ## Project setup
+Uses the Node version in `.nvmrc` (Vite needs Node >= 20.19). The `@govflanders` packages need `NPM_TOKEN` to be set.
 ```
-npm install
+nvm use
+npm ci --legacy-peer-deps
 ```
 
 ### Compiles and hot-reloads for development
 ```
 npm run serve
 ```
+The dev server listens on https://localhost:8443/v2/ (`npm run build && npm run preview` serves the build on the same port). It proxies `/api` to the API (`API_ENDPOINT`, default `https://localhost:9003`) and serves its own `/config.js`, so it works standalone. The Angular dev server proxies `/v2` to it, so
+https://localhost:5173/v2/ (or any host the Angular dev server forwards, see the root README) works too and shares
+the Angular login.
 
 ### Compiles and minifies for production
 ```
 npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
-```
-
-### Run your end-to-end tests
-```
-npm run test:e2e
 ```
 
 ### Lints and fixes files
@@ -31,4 +28,4 @@ npm run lint
 ```
 
 ### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+See [Configuration Reference](https://vite.dev/config/).

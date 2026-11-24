@@ -1,5 +1,11 @@
-import jwtDecode from "jwt-decode";
 import Roles from "./roles";
+
+// Reads the payload only; the signature is verified by the backend.
+function jwtDecode(jwt) {
+  const base64 = jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
 
 export class UserTokenResult {
   constructor(decodedJwtToken, succeeded) {
@@ -12,7 +18,7 @@ export class UserTokenResult {
         roles: decodedJwtToken.role,
         translatedRoles: []
           .concat(decodedJwtToken.role)
-          .map((x) => UserTokenResult.#translateRole(x)),
+          .map((x) => UserTokenResult.translateRole(x)),
       };
     }
   }
@@ -25,7 +31,7 @@ export class UserTokenResult {
     return Date.now() >= this.expiration * 1000;
   }
 
-  static #translateRole(role) {
+  static translateRole(role) {
     switch (role) {
       case "algemeenBeheerder":
         return Roles.AlgemeenBeheerder;

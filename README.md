@@ -20,21 +20,24 @@ Please see our [contributing guidelines](CONTRIBUTING.md) before contributing.
 
 #### To run the UI in live reload mode:
 
-Make sure you have the following lines in your `hosts` file
-
-```bash
-127.0.0.1	organisatie.dev-vlaanderen.local
-127.0.0.1	api.organisatie.dev-vlaanderen.local
-```
-
-Run the following commands:
 ```bash
 nvm use
-sudo setcap 'cap_net_bind_service=+ep' `which node` #only if experiencing permissions issues with port
-npm install
-npm run start:hmr
-# browse to https://organisatie.dev-vlaanderen.local
+npm run serve    # Angular UI and Vue2 dev servers together
+npm run preview  # both builds, built first if there is no build yet
+npm run build    # both builds, production (`npm run build -- --dev` for development mode)
+npm run clean    # removes node_modules and the build output (wwwroot / dist) of both
+# browse to https://localhost:5173 (self-signed certificate)
 ```
+
+These run `tools/dev.mjs`, which installs missing `node_modules` first and prefixes the output with `[ui]` / `[vue2]`. Each project still has its own scripts (`npm run serve|preview|build` inside `src/OrganisationRegistry.UI` and `src/OrganisationRegistry.Vue2`).
+
+The dev server is plain `localhost` on Vite's default port and also acts as a small gateway (development and preview only: builds and the production image are untouched and, as before, nginx serves them with `src/OrganisationRegistry.UI/default.conf` and `config.js` comes from `init.sh`). It is configured with Vite's own options in `src/OrganisationRegistry.UI/vite.config.mjs` (`server.allowedHosts` with `.example.com` wildcards, `server.proxy`), plus a few extras from `tools/vite-plugin-dev-gateway.mjs`, which the Vue2 dev server (`https://localhost:8443/v2/`) uses too, so it also has `/api` and its own `/config.js`:
+
+- `/api` is proxied to the API (`API_ENDPOINT`, default `https://localhost:9003`) and `/v2` to the Vue2 server (`npm run serve`, or `npm run preview` for its build, in `src/OrganisationRegistry.Vue2`), so both apps and the API share one origin and one login. Every other path is served 1:1.
+- Hosts in `allowedHosts` (for example `organisatie.dev-vlaanderen.local`, needed for the registered login redirect) are handled like localhost once they point at `127.0.0.1` in your `hosts` file. `sniCopy` gives each a throwaway certificate, in memory only. Without a port they arrive on 443: `sudo setcap 'cap_net_bind_service=+ep' $(which node)` (or `HTTPS_PORT=0` to skip it).
+- `noTLSVerify` and `xForwardedHost` apply to the proxy entries; `/config.js` is built from the environment like `init.sh` does, with the UI and API urls following the host you browse with.
+- Plain HTTP on `127.0.0.1:9007` (`HTTP_PORT`, `0` = off) is for tunnels that terminate TLS (`X-Forwarded-Proto` is honoured).
+- `npm run preview` serves the built `wwwroot` the same way.
 
 #### To run external dependencies
 
@@ -124,9 +127,9 @@ Our `build.sh` script knows a few tricks. By default it runs with the `Test` tar
 
 The buildserver passes in `CI_BUILD_NUMBER` as an integer to version the results and `BUILD_DOCKER_REGISTRY` to point to a Docker registry to push the resulting Docker images.
 
-#### NpmInstall
+#### Commit tooling (repository root)
 
-Run an `npm install` to setup Commitizen and Semantic Release.
+Run an `npm install` in the repository root (`nvm use` first, see `.nvmrc`) to setup Commitizen, commitlint, Husky git hooks and Semantic Release. The UI projects have their own `package.json` and are installed separately.
 
 #### DotNetCli
 
