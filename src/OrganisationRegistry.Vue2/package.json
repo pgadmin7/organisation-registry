@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --port 443 --host organisatie.dev-vlaanderen.local --https true",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "serve": "vite",
+    "build": "vite build",
+    "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
     "@govflanders/vl-ui-accordion": "^13.0.7",
@@ -109,31 +109,27 @@
     "@govflanders/vl-ui-video-player": "^13.0.7",
     "@govflanders/vl-ui-vue-components": "^14.0.7",
     "@govflanders/vl-ui-wizard": "^13.0.7",
-    "core-js": "^3.8.3",
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.4",
     "oidc-client": "^1.11.5",
     "pinia": "^2.3.1",
-    "register-service-worker": "^1.7.2",
     "vue": "^2.7.16",
     "vue-router": "^3.6.5"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-plugin-pwa": "~5.0.0",
-    "@vue/cli-plugin-router": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "@vitejs/plugin-vue2": "^2.3.4",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^8.0.3",
     "prettier": "^2.4.1",
-    "sass": "^1.32.7",
-    "sass-lint": "^1.13.1",
-    "sass-loader": "^12.0.0",
-    "vue-template-compiler": "^2.7.16"
+    "sass": "^1.70.0",
+    "vite": "^7.3.8"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   }
 }
