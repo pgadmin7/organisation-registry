@@ -86,7 +86,6 @@
     "@govflanders/vl-ui-video-player": "^22.3.0",
     "@govflanders/vl-ui-vue-components": "^23.3.10",
     "@govflanders/vl-ui-wizard": "^22.3.0",
-    "jwt-decode": "^3.1.2",
     "moment": "^2.31.0",
     "oidc-client": "^1.11.5",
     "pinia": "^2.3.1",
