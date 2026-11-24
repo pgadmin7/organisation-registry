@@ -1,67 +1,62 @@
-import Oidc from "oidc-client";
 import { removeItem } from "@/api/localStorage";
 
-class OidcClient {
-  static createSettings(data) {
-    return {
-      authority: data.authority, // 'https://authenticatie-ti.vlaanderen.be/op',
-      metadata: {
-        issuer: data.issuer, // 'https://authenticatie-ti.vlaanderen.be/op',
-        authorization_endpoint: data.authorizationEndpoint, // 'https://authenticatie-ti.vlaanderen.be/op/v1/auth',
-        userinfo_endpoint: data.userInfoEndPoint, // 'https://authenticatie-ti.vlaanderen.be/op/v1/userinfo',
-        end_session_endpoint: data.endSessionEndPoint, // 'https://authenticatie-ti.vlaanderen.be/op/v1/logout',
-        jwks_uri: data.jwks_uri, // 'https://authenticatie-ti.vlaanderen.be/op/v1/keys',
-      },
-      signing_keys: ["RS256"],
+// Authorization code flow with PKCE. The code is exchanged by the backend
+// (security/exchange), so only the sign-in and sign-out URLs are built here.
 
-      client_id: data.clientId, // 'dcdf573f-b430-4d34-b2f1-218af8506ba4',
-      redirect_uri: data.redirectUri.replace("/#/", "/v2/"), // 'https://dienstverlening.staging-basisregisters.vlaanderen/oic',
-      post_logout_redirect_uri: data.postLogoutRedirectUri, // 'https://dienstverlening.staging-basisregisters.vlaanderen',
+const base64Url = (bytes) =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+const random = () => base64Url(crypto.getRandomValues(new Uint8Array(32)));
+
+const withParams = (url, params) =>
+  url +
+  (url.includes("?") ? "&" : "?") +
+  Object.entries(params)
+    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+    .join("&");
+
+class OidcClient {
+  constructor(data) {
+    this.authorizationEndpoint = data.authorizationEndpoint; // 'https://authenticatie-ti.vlaanderen.be/op/v1/auth'
+    this.endSessionEndpoint = data.endSessionEndPoint; // 'https://authenticatie-ti.vlaanderen.be/op/v1/logout'
+    this.clientId = data.clientId;
+    this.redirectUri = data.redirectUri.replace("/#/", "/v2/");
+    this.postLogoutRedirectUri = data.postLogoutRedirectUri;
+  }
+
+  async signIn() {
+    const verifier = random();
+    const challenge = base64Url(
+      new Uint8Array(
+        await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(verifier)
+        )
+      )
+    );
+    localStorage.setItem("verifier", verifier);
+
+    window.location = withParams(this.authorizationEndpoint, {
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
       response_type: "code",
       scope: "openid profile vo iv_wegwijs",
-      filterProtocolClaims: true,
-      loadUserInfo: true,
-      query_status_response_type: "code",
-    };
-  }
-
-  constructor(data) {
-    const settings = OidcClient.createSettings(data);
-    this.client = new Oidc.OidcClient(settings);
-  }
-
-  signIn() {
-    this.client
-      .createSigninRequest({
-        state: {
-          bar: 15,
-        },
-      })
-      .then((req) => {
-        localStorage.setItem("verifier", req.state.code_verifier);
-        window.location = req.url;
-      })
-      .catch((err) => {
-        console.log("Shriek!", err);
-        console.log("Shriek!", err.request);
-      });
+      state: random(),
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+    });
   }
 
   signOut() {
     removeItem("token");
-    this.client
-      .createSignoutRequest({
-        state: {
-          bar: 15,
-        },
-      })
-      .then((req) => {
-        window.location = req.url;
-      })
-      .catch((err) => {
-        console.log("Shriek!", err);
-        console.log("Shriek!", err.request);
-      });
+
+    window.location = withParams(this.endSessionEndpoint, {
+      post_logout_redirect_uri: this.postLogoutRedirectUri,
+      state: random(),
+    });
   }
 }
 

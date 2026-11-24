@@ -83,7 +83,7 @@ export const useUserStore = defineStore("user", {
       const alertStore = useAlertStore();
 
       const verifier = getVerifier();
-      const redirectUri = this.oidcClient.client.settings.redirect_uri;
+      const redirectUri = this.oidcClient.redirectUri;
       const response = await exchangeCode(code, verifier, redirectUri);
       const token = await response.text();
 
